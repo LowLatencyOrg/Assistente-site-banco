@@ -65,7 +65,7 @@ echo "Iniciando container MySQL..."
 cd "$HOME/Assistente-site-banco" || exit 1
 
 sudo env MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" docker compose \
-    -f dockerCompose-banco.yml \
+    -f dockerCompose-banco.yaml \
     up -d
 
 if [ $? -ne 0 ]; then
@@ -120,7 +120,7 @@ cd "$HOME/low-latency" || exit 1
 echo "Construindo e iniciando a API..."
 
 sudo docker compose \
-    -f dockerCompose-api.yml \
+    -f dockerCompose-api.yaml \
     up -d --build
 
 if [ $? -ne 0 ]; then
