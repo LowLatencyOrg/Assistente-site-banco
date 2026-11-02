@@ -62,7 +62,7 @@ echo "Iniciando container MySQL..."
 
 echo "Iniciando container MySQL..."
 
-cd "$HOME/low-latency/Assistente-site-banco" || exit 1
+cd "$HOME/Assistente-site-banco" || exit 1
 
 sudo env MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" docker compose \
     -f dockerCompose-banco.yml \
