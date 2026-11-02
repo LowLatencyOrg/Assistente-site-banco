@@ -1,6 +1,6 @@
 services:
   banco:
-    image: mysql:8
+    image: mysql:26.10.0
     container_name: lowlatency-banco
     restart: unless-stopped
     environment:
