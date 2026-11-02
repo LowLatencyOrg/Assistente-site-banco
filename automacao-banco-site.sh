@@ -73,6 +73,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "Aguardando o MySQL iniciar..."
+
+until sudo docker exec lowlatency-banco \
+    mysqladmin ping -h localhost --silent; do
+    sleep 2
+done
+
+echo "MySQL está pronto!"
 echo "Container MySQL iniciado!"
 
 # CRIAÇÃO DO USUÁRIO DA API
