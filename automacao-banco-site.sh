@@ -60,14 +60,16 @@ sudo mkdir -p /dados/mysql
 # INICIALIZAÇÃO DO BANCO
 echo "Iniciando container MySQL..."
 
-sudo -E docker compose \ -f docker-compose-banco.yml \ up -d
+sudo env MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" docker compose \
+    -f docker-compose-banco.yml \
+    up -d
 
 if [ $? -ne 0 ]; then
     echo "Erro ao iniciar o banco."
     exit 1
 fi
 
-echo "MySQL está pronto!"
+echo "Container MySQL iniciado!"
 
 # CRIAÇÃO DO USUÁRIO DA API
 echo "Configurando usuário do banco..."
