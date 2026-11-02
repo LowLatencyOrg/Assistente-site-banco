@@ -1,7 +1,6 @@
-
 services:
   banco:
-    image: mysql:latest
+    image: mysql:8
     container_name: lowlatency-banco
     restart: unless-stopped
     environment:
@@ -11,10 +10,7 @@ services:
       - ${BASE_DIR}/Banco-de-dados/script-low-latency.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     networks:
       - lowlatency-net
-    ports:
-      -"3306:3306"
 
 networks:
   lowlatency-net:
-    name: lowlatency-net
-    driver: bridge
+    external: true
