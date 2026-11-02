@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: ${BASE_DIR}/Site-Grupo03
+      context: $HOME/low-latency/Site-Grupo03
     container_name: lowlatency-api
     restart: unless-stopped
     ports:
