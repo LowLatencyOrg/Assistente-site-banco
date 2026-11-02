@@ -60,8 +60,12 @@ sudo mkdir -p /dados/mysql
 # INICIALIZAÇÃO DO BANCO
 echo "Iniciando container MySQL..."
 
+echo "Iniciando container MySQL..."
+
+cd "$HOME/low-latency/Assistente-site-banco" || exit 1
+
 sudo env MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" docker compose \
-    -f docker-compose-banco.yml \
+    -f dockerCompose-banco.yml \
     up -d
 
 if [ $? -ne 0 ]; then
@@ -115,7 +119,9 @@ cd "$HOME/low-latency" || exit 1
 
 echo "Construindo e iniciando a API..."
 
-sudo -E docker compose \ -f docker-compose-api.yml \ up -d --build
+sudo docker compose \
+    -f dockerCompose-api.yml \
+    up -d --build
 
 if [ $? -ne 0 ]; then
     echo "Erro ao iniciar a API."
