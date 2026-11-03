@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - /dados/mysql:/var/lib/mysql
-      - $HOME/low-latency/Banco-de-dados/script-low-latency.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ${BASE_DIR}/Banco-de-dados/script-low-latency.sql:/docker-entrypoint-initdb.d/01-init.sql:roBanco-de-dados/script-low-latency.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     networks:
       - lowlatency-net
 

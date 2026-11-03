@@ -1,5 +1,5 @@
 #!/bin/bash
-
+BASE_DIR="$HOME/low-latency"
 echo "Iniciando configuração do ambiente"
 echo "Atualizando pacotes..."
 
@@ -86,9 +86,12 @@ echo "Container MySQL iniciado!"
 # CRIAÇÃO DO USUÁRIO DA API
 echo "Configurando usuário do banco..."
 
-sudo docker exec lowlatency-banco \
-    mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
-    CREATE USER 'dba_user'@'%' IDENTIFIED BY '12345';
+sudo docker exec \
+    -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
+    lowlatency-banco \
+    mysql -u root -e "
+    CREATE USER IF NOT EXISTS 'dba_user'@'%' IDENTIFIED BY '12345';
+    ALTER USER 'dba_user'@'%' IDENTIFIED BY '12345';
     GRANT ALL PRIVILEGES ON lowLatency.* TO 'dba_user'@'%';
     FLUSH PRIVILEGES;
     "
@@ -126,9 +129,10 @@ DOCKERFILE_EOF
 cd "$HOME/low-latency" || exit 1
 
 echo "Construindo e iniciando a API..."
+cd "$HOME/Assistente-site-banco" || exit 1
 
 sudo docker compose \
-    -f dockerCompose-api.yaml \
+    -f dockerCompose-site.yaml \
     up -d --build
 
 if [ $? -ne 0 ]; then
