@@ -92,6 +92,19 @@ echo "Container MySQL iniciado!"
 # CRIAÇÃO DO USUÁRIO DA API
 echo "Configurando usuário do banco..."
 
+# TESTE DE CONEXÃO COM O ROOT
+if ! sudo docker exec \
+    -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
+    lowlatency-banco \
+    mysql -u root -e "SELECT 1;" >/dev/null 2>&1; then
+
+    echo "Erro: não foi possível autenticar no MySQL com a senha informada."
+    exit 1
+fi
+
+echo "Conexão com o MySQL root confirmada!"
+
+# CRIAÇÃO DO USUÁRIO DA API
 if ! sudo docker exec \
     -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
     lowlatency-banco \
@@ -104,11 +117,11 @@ if ! sudo docker exec \
 
     echo "Erro ao configurar o usuário do banco."
     exit 1
-
 fi
 
 unset MYSQL_ROOT_PASSWORD
 
+echo "Usuário dba_user configurado!"
 echo "Usuário dba_user configurado!"
 
 # CLONAGEM DA API
