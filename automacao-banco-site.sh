@@ -1,6 +1,10 @@
 #!/bin/bash
+
 BASE_DIR="$HOME/low-latency"
+
 echo "Iniciando configuração do ambiente"
+
+# ATUALIZAÇÃO DOS PACOTES
 echo "Atualizando pacotes..."
 
 if ! sudo apt update || ! sudo apt upgrade -y; then
@@ -17,7 +21,6 @@ if command -v docker >/dev/null 2>&1; then
 else
     echo "Instalando Docker..."
     sudo apt install -y docker.io
-    sudo systemctl enable --now docker
 fi
 
 sudo systemctl enable --now docker
@@ -31,41 +34,48 @@ fi
 echo "Docker e Docker Compose configurados!"
 
 # DIRETÓRIO DO PROJETO
-mkdir -p "$HOME/low-latency"
-cd "$HOME/low-latency" || exit 1
+mkdir -p "$BASE_DIR"
 
 # CLONAGEM DO BANCO
-echo "Baixando arquivos do banco..."
+echo "Verificando arquivos do banco..."
 
-git clone https://github.com/LowLatencyOrg/Banco-de-dados.git
+git clone https://github.com/LowLatencyOrg/Banco-de-dados.git \
+    "$BASE_DIR/Banco-de-dados"
 
-if [ ! -f "$HOME/low-latency/Banco-de-dados/script-low-latency.sql" ]; then
-    echo "Arquivo SQL não encontrado."
+if [ $? -ne 0 ]; then
+    echo "Erro ao baixar o repositório do banco."
     exit 1
 fi
 
 # REDE DOCKER
-echo "Criando rede Docker..."
-sudo docker network create lowlatency-net
+echo "Verificando rede Docker..."
+
+if ! sudo docker network inspect lowlatency-net >/dev/null 2>&1; then
+    sudo docker network create lowlatency-net
+fi
+
+# VERIFICAÇÃO DO DISCO
+if ! mountpoint -q /dados; then
+    echo "O disco de persistência não está montado em /dados."
+    exit 1
+fi
+
+sudo mkdir -p /dados/mysql
 
 # SENHA DO MYSQL
 read -r -s -p "Digite a senha do MySQL root: " MYSQL_ROOT_PASSWORD
 echo
 
-export MYSQL_ROOT_PASSWORD
-
-# DIRETÓRIO DE PERSISTÊNCIA
-sudo mkdir -p /dados/mysql
-
 # INICIALIZAÇÃO DO BANCO
-echo "Iniciando container MySQL..."
-
 echo "Iniciando container MySQL..."
 
 cd "$HOME/Assistente-site-banco" || exit 1
 
-sudo env MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" docker compose \
-    -f dockerCompose-banco.yaml \
+sudo env \
+    MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
+    BASE_DIR="$BASE_DIR" \
+    docker compose \    
+    -f dockerCompose-site.yaml \
     up -d
 
 if [ $? -ne 0 ]; then
@@ -73,6 +83,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# AGUARDAR MYSQL
 echo "Aguardando o MySQL iniciar..."
 
 until sudo docker exec lowlatency-banco \
@@ -86,7 +97,7 @@ echo "Container MySQL iniciado!"
 # CRIAÇÃO DO USUÁRIO DA API
 echo "Configurando usuário do banco..."
 
-sudo docker exec \
+if ! sudo docker exec \
     -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" \
     lowlatency-banco \
     mysql -u root -e "
@@ -94,30 +105,33 @@ sudo docker exec \
     ALTER USER 'dba_user'@'%' IDENTIFIED BY '12345';
     GRANT ALL PRIVILEGES ON lowLatency.* TO 'dba_user'@'%';
     FLUSH PRIVILEGES;
-    "
+    "; then
 
-if [ $? -ne 0 ]; then
     echo "Erro ao configurar o usuário do banco."
     exit 1
+
 fi
 
 unset MYSQL_ROOT_PASSWORD
 
 echo "Usuário dba_user configurado!"
 
-# INICIALIZAÇÃO DA API
-
-
-echo "Baixando arquivos da API..."
+# CLONAGEM DA API
+echo "Verificando arquivos da API..."
 
 git clone https://github.com/LowLatencyOrg/Site-Grupo03.git \
-    "$HOME/low-latency/Site-Grupo03"
+    "$BASE_DIR/Site-Grupo03"
 
-cd "$HOME/low-latency/Site-Grupo03" || exit 1
+if [ $? -ne 0 ]; then
+    echo "Erro ao baixar o repositório da API."
+    exit 1
+fi
 
+
+# CRIAÇÃO DO DOCKERFILE
 echo "Criando Dockerfile..."
 
-cat > Dockerfile <<'DOCKERFILE_EOF'
+cat > "$BASE_DIR/Site-Grupo03/Dockerfile" <<'DOCKERFILE_EOF'
 FROM node:20-alpine
 WORKDIR /app
 COPY . .
@@ -126,13 +140,12 @@ EXPOSE 3333
 CMD ["npm", "start"]
 DOCKERFILE_EOF
 
-cd "$HOME/low-latency" || exit 1
-
+# INICIALIZAÇÃO DA API
 echo "Construindo e iniciando a API..."
 cd "$HOME/Assistente-site-banco" || exit 1
 
-sudo docker compose \
-    -f dockerCompose-site.yaml \
+sudo env BASE_DIR="$BASE_DIR" docker compose \
+    -f dockerCompose-site.yaml
     up -d --build
 
 if [ $? -ne 0 ]; then
@@ -142,9 +155,5 @@ fi
 
 echo "API iniciada com sucesso!"
 echo "Acesse: http://IP-PUBLICO-DA-EC2:3333"
-
-else
-    echo "Inicialização da API cancelada."
-fi
 
 echo "Configuração concluída!"
