@@ -71,12 +71,7 @@ echo "Iniciando container MySQL..."
 
 cd "$HOME/Assistente-site-banco" || exit 1
 
-sudo env \
-    MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
-    BASE_DIR="$BASE_DIR" \
-    docker compose \    
-    -f dockerCompose-site.yaml \
-    up -d
+sudo env MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" BASE_DIR="$BASE_DIR" docker compose -f dockerCompose-banco.yaml up -d
 
 if [ $? -ne 0 ]; then
     echo "Erro ao iniciar o banco."
@@ -145,7 +140,7 @@ echo "Construindo e iniciando a API..."
 cd "$HOME/Assistente-site-banco" || exit 1
 
 sudo env BASE_DIR="$BASE_DIR" docker compose \
-    -f dockerCompose-site.yaml
+    -f dockerCompose-site.yaml \
     up -d --build
 
 if [ $? -ne 0 ]; then
