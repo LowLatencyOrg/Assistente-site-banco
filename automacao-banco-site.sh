@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 BASE_DIR="$HOME/low-latency"
@@ -81,9 +82,8 @@ fi
 # AGUARDAR MYSQL
 echo "Aguardando o MySQL iniciar..."
 
-until sudo docker exec lowlatency-banco \
-    mysqladmin ping -h localhost --silent; do
-    sleep 2
+until sudo docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" lowlatency-banco mysql -u root -e "SELECT 1;" >/dev/null 2>&1; do
+    sleep 3
 done
 
 echo "MySQL está pronto!"
