@@ -2,13 +2,15 @@ services:
   api:
     build:
       context: ${BASE_DIR}/Site-Grupo03
+
     container_name: lowlatency-api
     restart: unless-stopped
+
     ports:
       - "3333:3333"
 
     env_file:
-      - ${BASE_DIR}/Site-Grupo03/.env
+      - ${BASE_DIR}/Site-Grupo03/.env.dev
 
     networks:
       - lowlatency-net
