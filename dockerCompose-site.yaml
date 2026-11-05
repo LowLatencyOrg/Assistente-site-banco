@@ -6,6 +6,10 @@ services:
     restart: unless-stopped
     ports:
       - "3333:3333"
+
+    env_file:
+      - ${BASE_DIR}/Site-Grupo03/.env
+
     networks:
       - lowlatency-net
 
